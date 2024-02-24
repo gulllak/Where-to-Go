@@ -9,6 +9,7 @@ import ru.practicum.statsservice.mapper.EndpointMapper;
 import ru.practicum.statsservice.repository.StatsRepository;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,11 +35,13 @@ public class StatsServiceImpl implements StatsService {
                     .collect(Collectors.groupingBy(Endpoint::getUri, Collectors.mapping(Endpoint::getIp, Collectors.toSet())))
                     .entrySet().stream()
                     .map(entry -> mapper.toResponseDto(findAppByUri(endpoints, entry.getKey()), entry.getKey(), (long) entry.getValue().size()))
+                    .sorted(Comparator.comparingLong(ResponseStatsDto::getHits).reversed())
                     .collect(Collectors.toList());
         } else {
             return endpoints.stream().collect(Collectors.groupingBy(Endpoint::getUri, Collectors.counting()))
                     .entrySet().stream()
                     .map(entry -> mapper.toResponseDto(findAppByUri(endpoints, entry.getKey()), entry.getKey(), entry.getValue()))
+                    .sorted(Comparator.comparingLong(ResponseStatsDto::getHits).reversed())
                     .collect(Collectors.toList());
         }
     }
