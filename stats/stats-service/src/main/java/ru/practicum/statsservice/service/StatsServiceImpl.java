@@ -2,6 +2,7 @@ package ru.practicum.statsservice.service;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.statsdto.RequestHitDto;
 import ru.practicum.statsdto.ResponseStatsDto;
 import ru.practicum.statsservice.entity.Endpoint;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 @AllArgsConstructor
 public class StatsServiceImpl implements StatsService {
     private final StatsRepository repository;
@@ -46,6 +48,7 @@ public class StatsServiceImpl implements StatsService {
         }
     }
 
+    @Transactional
     @Override
     public void addHit(RequestHitDto requestHitDto) {
         repository.save(mapper.toEndpoint(requestHitDto));
