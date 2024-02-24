@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,13 +15,11 @@ import ru.practicum.statsservice.exception.ValidationException;
 import ru.practicum.statsservice.service.StatsService;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@Validated
 public class StatsController {
     private final StatsService statsService;
 
@@ -35,7 +32,7 @@ public class StatsController {
     @GetMapping("/stats")
     public List<ResponseStatsDto> getStatistics(@RequestParam("start") @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime start,
                                           @RequestParam("end") @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end,
-                                          @RequestParam(value = "uris", required = false) @NotNull List<String> uris,
+                                          @RequestParam(value = "uris", required = false) List<String> uris,
                                           @RequestParam(value = "unique", defaultValue = "false") boolean unique
                                 ) {
         validateTime(start, end);

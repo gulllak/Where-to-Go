@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface StatsRepository extends JpaRepository<Endpoint, Long> {
     List<Endpoint> findAllByRequestTimeAfterAndRequestTimeBeforeAndUriIn(LocalDateTime start, LocalDateTime end, List<String> uris);
+
+    List<Endpoint> findAllByRequestTimeAfterAndRequestTimeBefore(LocalDateTime start, LocalDateTime end);
 }

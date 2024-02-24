@@ -21,7 +21,13 @@ public class StatsServiceImpl implements StatsService {
 
     @Override
     public List<ResponseStatsDto> getStatistics(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
-        List<Endpoint> endpoints = repository.findAllByRequestTimeAfterAndRequestTimeBeforeAndUriIn(start, end, uris);
+        List<Endpoint> endpoints;
+
+        if (uris == null) {
+            endpoints = repository.findAllByRequestTimeAfterAndRequestTimeBefore(start, end);
+        } else {
+            endpoints = repository.findAllByRequestTimeAfterAndRequestTimeBeforeAndUriIn(start, end, uris);
+        }
 
         if (unique) {
             return endpoints.stream()
