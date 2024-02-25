@@ -2,7 +2,6 @@ package ru.practicum.statsservice.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -16,7 +15,8 @@ import java.util.List;
 @Slf4j
 public class ErrorHandler {
     @ExceptionHandler
-    public ResponseEntity<Object> handleValidationException(MethodArgumentNotValidException ex) {
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleValidationException(MethodArgumentNotValidException ex) {
         BindingResult result = ex.getBindingResult();
         StringBuilder errorMessage = new StringBuilder();
 
@@ -27,8 +27,8 @@ public class ErrorHandler {
                     .append(error.getDefaultMessage());
         }
         log.error(errorMessage.toString());
-        ErrorResponse errorResponse = new ErrorResponse(errorMessage.toString());
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+
+        return new ErrorResponse(errorMessage.toString());
     }
 
     @ExceptionHandler

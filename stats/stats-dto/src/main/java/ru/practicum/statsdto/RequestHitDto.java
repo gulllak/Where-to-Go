@@ -17,6 +17,7 @@ public class RequestHitDto {
     private String uri;
     @NotEmpty(message = "IP-адрес не может быть пустым")
     private String ip;
+    @NotNull(message = "Дата и время не могут отсутствовать")
     @JsonProperty("timestamp")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime requestTime;
