@@ -1,6 +1,7 @@
 package ru.practicum.mainservice.service.impl;
 
 import ru.practicum.mainservice.dto.CategoryDto;
+import ru.practicum.mainservice.dto.CompilationDto;
 import ru.practicum.mainservice.dto.EventFullDto;
 import ru.practicum.mainservice.dto.EventRequestStatusUpdateResult;
 import ru.practicum.mainservice.dto.EventShortDto;
@@ -8,11 +9,13 @@ import ru.practicum.mainservice.dto.NewCategoryDto;
 import ru.practicum.mainservice.dto.NewEventDto;
 import ru.practicum.mainservice.dto.NewUserRequest;
 import ru.practicum.mainservice.dto.ParticipationRequestDto;
+import ru.practicum.mainservice.dto.UpdateCompilationRequest;
 import ru.practicum.mainservice.dto.UpdateEventBaseRequest;
 import ru.practicum.mainservice.dto.UserDto;
 import ru.practicum.mainservice.dto.UserShortDto;
 import ru.practicum.mainservice.exception.UpdateValidationException;
 import ru.practicum.mainservice.model.Category;
+import ru.practicum.mainservice.model.Compilation;
 import ru.practicum.mainservice.model.Event;
 import ru.practicum.mainservice.model.ParticipationRequest;
 import ru.practicum.mainservice.model.RequestStatus;
@@ -173,4 +176,29 @@ public class Mapper {
                 .build();
     }
 
+    public static CompilationDto toCompilationDto(Compilation compilation) {
+        List<EventShortDto> eventShortDtos = compilation.getEvents().stream()
+                .map(Mapper::toEventShortDto)
+                .collect(Collectors.toList());
+
+        return CompilationDto.builder()
+                .id(compilation.getId())
+                .events(eventShortDtos)
+                .pinned(compilation.getPinned())
+                .title(compilation.getTitle())
+                .build();
+    }
+
+    public static void updateCompilation(Compilation compilation, UpdateCompilationRequest updateCompilation) {
+        if(updateCompilation.getPinned() != null) {
+            compilation.setPinned(updateCompilation.getPinned());
+        }
+
+        if(updateCompilation.getTitle() != null) {
+            if(updateCompilation.getTitle().length() < 1 || updateCompilation.getTitle().length() > 50) {
+                throw new UpdateValidationException("The title must be more than 1 and less than 50 characters");
+            }
+            compilation.setTitle(updateCompilation.getTitle());
+        }
+    }
 }
