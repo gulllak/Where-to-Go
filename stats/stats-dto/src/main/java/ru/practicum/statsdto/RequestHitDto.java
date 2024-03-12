@@ -1,7 +1,6 @@
 package ru.practicum.statsdto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
 import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
@@ -9,6 +8,7 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Data
+@Builder
 public class RequestHitDto {
     @NotNull
     @NotEmpty(message = "Имя приложения не может быть пустым")
@@ -18,7 +18,5 @@ public class RequestHitDto {
     @NotEmpty(message = "IP-адрес не может быть пустым")
     private String ip;
     @NotNull(message = "Дата и время не могут отсутствовать")
-    @JsonProperty("timestamp")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime requestTime;
+    private LocalDateTime timestamp;
 }

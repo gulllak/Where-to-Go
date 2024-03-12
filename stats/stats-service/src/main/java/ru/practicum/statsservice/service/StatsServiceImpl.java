@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.statsdto.RequestHitDto;
-import ru.practicum.statsdto.ResponseStatsDto;
+import ru.practicum.statsdto.ViewStats;
 import ru.practicum.statsservice.entity.Endpoint;
 import ru.practicum.statsservice.mapper.EndpointMapper;
 import ru.practicum.statsservice.repository.StatsRepository;
@@ -23,13 +23,13 @@ public class StatsServiceImpl implements StatsService {
     private final EndpointMapper mapper;
 
     @Override
-    public List<ResponseStatsDto> getStatistics(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
+    public List<ViewStats> getStatistics(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
         List<Endpoint> endpoints;
 
         if (uris == null) {
-            endpoints = repository.findAllByRequestTimeAfterAndRequestTimeBefore(start, end);
+            endpoints = repository.findAllByTimestampBetween(start, end);
         } else {
-            endpoints = repository.findAllByRequestTimeAfterAndRequestTimeBeforeAndUriIn(start, end, uris);
+            endpoints = repository.findAllByTimestampBetweenAndUriIn(start, end, uris);
         }
 
         if (unique) {
@@ -37,13 +37,13 @@ public class StatsServiceImpl implements StatsService {
                     .collect(Collectors.groupingBy(Endpoint::getUri, Collectors.mapping(Endpoint::getIp, Collectors.toSet())))
                     .entrySet().stream()
                     .map(entry -> mapper.toResponseDto(findAppByUri(endpoints, entry.getKey()), entry.getKey(), (long) entry.getValue().size()))
-                    .sorted(Comparator.comparingLong(ResponseStatsDto::getHits).reversed())
+                    .sorted(Comparator.comparingLong(ViewStats::getHits).reversed())
                     .collect(Collectors.toList());
         } else {
             return endpoints.stream().collect(Collectors.groupingBy(Endpoint::getUri, Collectors.counting()))
                     .entrySet().stream()
                     .map(entry -> mapper.toResponseDto(findAppByUri(endpoints, entry.getKey()), entry.getKey(), entry.getValue()))
-                    .sorted(Comparator.comparingLong(ResponseStatsDto::getHits).reversed())
+                    .sorted(Comparator.comparingLong(ViewStats::getHits).reversed())
                     .collect(Collectors.toList());
         }
     }

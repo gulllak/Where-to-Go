@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ResponseStatsDto {
+public class ViewStats {
     private String app;
     private String uri;
     private Long hits;

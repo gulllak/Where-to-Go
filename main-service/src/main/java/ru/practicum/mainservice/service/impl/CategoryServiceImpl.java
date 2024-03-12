@@ -27,8 +27,6 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void delete(long id) {
-        //TODO Существуют события, связанные с категорией
-        //Нужно проверить перед удалением что категория пустая, иначе исключение CONFLICT
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Category with id=%d was not found", id)));
 
