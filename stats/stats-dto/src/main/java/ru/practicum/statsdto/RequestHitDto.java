@@ -1,22 +1,21 @@
 package ru.practicum.statsdto;
 
-import lombok.Builder;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Data
-@Builder
 public class RequestHitDto {
-    @NotNull
-    @NotEmpty(message = "Имя приложения не может быть пустым")
+    @NotBlank(message = "Имя приложения не может быть пустым")
     private String app;
-    @NotEmpty(message = "Uri не может быть пустым")
+    @NotBlank(message = "Uri не может быть пустым")
     private String uri;
-    @NotEmpty(message = "IP-адрес не может быть пустым")
+    @NotBlank(message = "IP-адрес не может быть пустым")
     private String ip;
     @NotNull(message = "Дата и время не могут отсутствовать")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime timestamp;
 }

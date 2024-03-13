@@ -33,12 +33,11 @@ public class StatsClient extends BaseClient {
     }
 
     public void addHit(HttpServletRequest httpRequest) {
-        RequestHitDto requestHitDto = RequestHitDto.builder()
-                .app(application)
-                .ip(httpRequest.getRemoteAddr())
-                .uri(httpRequest.getRequestURI())
-                .timestamp(LocalDateTime.now())
-                .build();
+        RequestHitDto requestHitDto = new RequestHitDto();
+                requestHitDto.setApp(application);
+                requestHitDto.setUri(httpRequest.getRequestURI());
+                requestHitDto.setIp(httpRequest.getRemoteAddr());
+                requestHitDto.setTimestamp(LocalDateTime.now());
 
         post("/hit", requestHitDto);
     }
