@@ -122,8 +122,6 @@ public class EventServiceImpl implements EventService {
         eventFullDto.setConfirmedRequests(confirmedRequests);
         eventFullDto.setViews(view);
 
-        //TODO добавить просмотры в eventFullDto
-
         return eventFullDto;
     }
 
@@ -188,6 +186,7 @@ public class EventServiceImpl implements EventService {
             if (ChronoUnit.HOURS.between(now, newStartTime) < 1) {
                 throw new DataValidationException("The start date of the event to be modified must be no earlier than one hour from the date of publication");
             }
+            event.setEventDate(updateEvent.getEventDate());
         }
 
         Category category = event.getCategory();
