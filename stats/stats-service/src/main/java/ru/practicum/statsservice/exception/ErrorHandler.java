@@ -8,6 +8,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.practicum.statsclient.exception.ClientServerException;
 
 import java.util.List;
 
@@ -34,6 +35,12 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleValidationException(ValidationException ex) {
+        return new ErrorResponse(ex.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_GATEWAY)
+    public ErrorResponse handleClientException(ClientServerException ex) {
         return new ErrorResponse(ex.getMessage());
     }
 }

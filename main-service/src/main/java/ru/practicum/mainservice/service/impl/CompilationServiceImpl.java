@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.mainservice.dto.CompilationDto;
 import ru.practicum.mainservice.dto.NewCompilationDto;
 import ru.practicum.mainservice.dto.UpdateCompilationRequest;
@@ -23,15 +24,17 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class CompilationServiceImpl implements CompilationService {
     private final CompilationRepository compilationRepository;
 
     private final EventRepository eventRepository;
 
+    @Transactional
     @Override
     public CompilationDto save(NewCompilationDto newCompilationDto) {
         Set<Event> events = new HashSet<>();
-        if(newCompilationDto.getEvents() != null) {
+        if (newCompilationDto.getEvents() != null) {
             events = new HashSet<>(eventRepository.findAllById(newCompilationDto.getEvents()));
         }
 
@@ -44,6 +47,7 @@ public class CompilationServiceImpl implements CompilationService {
         return Mapper.toCompilationDto(compilationRepository.save(compilation));
     }
 
+    @Transactional
     @Override
     public void delete(long compId) {
         Compilation compilation = compilationRepository.findById(compId)
@@ -52,6 +56,7 @@ public class CompilationServiceImpl implements CompilationService {
         compilationRepository.delete(compilation);
     }
 
+    @Transactional
     @Override
     public CompilationDto update(long compId, UpdateCompilationRequest updateCompilation) {
         Compilation compilation = compilationRepository.findById(compId)
@@ -68,7 +73,7 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
-    public Set<CompilationDto> getCompilations(Boolean pinned, int from, int size) {
+    public List<CompilationDto> getCompilations(Boolean pinned, int from, int size) {
         BooleanExpression predicate = null;
         if (pinned != null) {
             predicate = QCompilation.compilation.pinned.eq(pinned);
@@ -83,7 +88,7 @@ public class CompilationServiceImpl implements CompilationService {
 
         return compilations.stream()
                 .map(Mapper::toCompilationDto)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
     }
 
     @Override

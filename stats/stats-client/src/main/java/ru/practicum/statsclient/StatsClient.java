@@ -2,11 +2,13 @@ package ru.practicum.statsclient;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.DefaultUriBuilderFactory;
+import ru.practicum.statsclient.exception.ClientServerException;
 import ru.practicum.statsdto.RequestHitDto;
 import ru.practicum.statsdto.ViewStats;
 import ru.practicum.statsdto.ViewStatsRequest;
@@ -14,6 +16,7 @@ import ru.practicum.statsdto.ViewStatsRequest;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -22,9 +25,9 @@ public class StatsClient extends BaseClient {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final String application = "ewm-main-server";
 
-    public StatsClient(RestTemplateBuilder builder) {
+    public StatsClient(@Value("${STAT-SERVER.URL}") String server, RestTemplateBuilder builder) {
         super(builder
-                .uriTemplateHandler(new DefaultUriBuilderFactory("http://localhost:9090"))
+                .uriTemplateHandler(new DefaultUriBuilderFactory(server))
                 .requestFactory(HttpComponentsClientHttpRequestFactory::new)
                 .build());
     }
@@ -45,11 +48,26 @@ public class StatsClient extends BaseClient {
         Map<String, Object> param = Map.of(
                 "start", request.getStart().format(formatter),
                 "end", request.getEnd().format(formatter),
-                "uris", request.getUris().toArray(),
+                "uris", String.join(",", request.getUris()),
                 "unique", request.isUnique()
         );
-        ResponseEntity<Object> response = get("/stats?start={start}&end={end}&uris={uris}&unique={unique}", param);
-        return objectMapper.convertValue(response.getBody(), new TypeReference<>() {
-        });
+        ResponseEntity<Object> response;
+
+        try {
+            response = get("/stats?start={start}&end={end}&uris={uris}&unique={unique}", param);
+        } catch (Exception e) {
+            throw new ClientServerException("Client not available");
+        }
+
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            throw new ClientServerException("Client server return status: " + response.getStatusCode());
+        }
+
+        try {
+            return objectMapper.convertValue(response.getBody(), new TypeReference<ArrayList<ViewStats>>() {
+            });
+        } catch (IllegalArgumentException e) {
+            throw new ClientServerException("Error converting the response from the statistics server");
+        }
     }
 }

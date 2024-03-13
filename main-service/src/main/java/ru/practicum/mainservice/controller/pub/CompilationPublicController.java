@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.mainservice.dto.CompilationDto;
 import ru.practicum.mainservice.service.api.CompilationService;
 
-import java.util.Set;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,9 +21,9 @@ public class CompilationPublicController {
 
     @GetMapping
     @ResponseStatus(code = HttpStatus.OK)
-    public Set<CompilationDto> getCompilations(@RequestParam(required = false) Boolean pinned,
-                                               @RequestParam(defaultValue = "0") int from,
-                                               @RequestParam(defaultValue = "10") int size) {
+    public List<CompilationDto> getCompilations(@RequestParam(required = false) Boolean pinned,
+                                                @RequestParam(defaultValue = "0") int from,
+                                                @RequestParam(defaultValue = "10") int size) {
         return compilationService.getCompilations(pinned, from, size);
     }
 

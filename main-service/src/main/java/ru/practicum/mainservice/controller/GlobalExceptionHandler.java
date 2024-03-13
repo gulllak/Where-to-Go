@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
     @ExceptionHandler({MethodArgumentNotValidException.class})
     public ResponseEntity<ApiError> handleValidationException(MethodArgumentNotValidException ex) {
         List<String> errors = ex.getBindingResult()
@@ -54,6 +53,7 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(apiError, apiError.getStatus());
     }
+
     @ExceptionHandler({EventChangeDeniedException.class})
     public ResponseEntity<ApiError> handleEventStatusChangeDenied(EventChangeDeniedException ex) {
         ApiError apiError = new ApiError(

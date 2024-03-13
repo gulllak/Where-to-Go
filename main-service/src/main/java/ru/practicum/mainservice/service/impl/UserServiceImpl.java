@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.mainservice.dto.NewUserRequest;
 import ru.practicum.mainservice.dto.UserDto;
 import ru.practicum.mainservice.exception.EntityNotFoundException;
@@ -16,9 +17,11 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
+    @Transactional
     @Override
     public UserDto save(NewUserRequest newUser) {
         User user = userRepository.save(Mapper.toUser(newUser));
@@ -26,6 +29,7 @@ public class UserServiceImpl implements UserService {
         return Mapper.toUserDto(user);
     }
 
+    @Transactional
     @Override
     public void delete(long userId) {
         User user = userRepository.findById(userId)
@@ -37,7 +41,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserDto> getUsers(List<Long> ids, int from, int size) {
         List<User> users;
-        if(ids == null) {
+        if (ids == null) {
             users = userRepository.findAll(getPageable(from, size)).getContent();
         } else {
             users = userRepository.findAllByIdIn(ids, getPageable(from, size));

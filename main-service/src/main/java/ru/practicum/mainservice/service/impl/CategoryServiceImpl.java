@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.mainservice.dto.CategoryDto;
 import ru.practicum.mainservice.dto.NewCategoryDto;
 import ru.practicum.mainservice.exception.EntityNotFoundException;
@@ -17,14 +18,18 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
+
+    @Transactional
     @Override
     public CategoryDto save(NewCategoryDto newCategoryDto) {
         Category category = categoryRepository.save(Mapper.toCategory(newCategoryDto));
         return Mapper.toCategoryDto(category);
     }
 
+    @Transactional
     @Override
     public void delete(long id) {
         Category category = categoryRepository.findById(id)
@@ -33,6 +38,7 @@ public class CategoryServiceImpl implements CategoryService {
         categoryRepository.delete(category);
     }
 
+    @Transactional
     @Override
     public CategoryDto update(CategoryDto categoryDto) {
         Category category = categoryRepository.findById(categoryDto.getId())

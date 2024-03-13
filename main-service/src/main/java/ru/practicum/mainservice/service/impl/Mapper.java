@@ -40,7 +40,7 @@ public class Mapper {
     }
 
     public static void updateCategory(Category category, CategoryDto categoryDto) {
-        if(categoryDto.getName() != null) {
+        if (categoryDto.getName() != null) {
             category.setName(categoryDto.getName());
         }
     }
@@ -115,13 +115,13 @@ public class Mapper {
 
     public static void updateEvent(Event event, UpdateEventBaseRequest updateEvent) {
         if (updateEvent.getAnnotation() != null) {
-            if(updateEvent.getAnnotation().length() < 20 || updateEvent.getAnnotation().length() > 2000) {
+            if (updateEvent.getAnnotation().length() < 20 || updateEvent.getAnnotation().length() > 2000) {
                 throw new UpdateValidationException("The annotation must be more than 3 and less than 120 characters");
             }
             event.setAnnotation(updateEvent.getAnnotation());
         }
         if (updateEvent.getDescription() != null) {
-            if(updateEvent.getDescription().length() < 20 || updateEvent.getDescription().length() > 7000) {
+            if (updateEvent.getDescription().length() < 20 || updateEvent.getDescription().length() > 7000) {
                 throw new UpdateValidationException("The description must be more than 20 and less than 7000 characters");
             }
             event.setDescription(updateEvent.getDescription());
@@ -133,7 +133,7 @@ public class Mapper {
             event.setPaid(updateEvent.getPaid());
         }
         if (updateEvent.getParticipantLimit() != null) {
-            if(updateEvent.getParticipantLimit() < 0) {
+            if (updateEvent.getParticipantLimit() < 0) {
                 throw new UpdateValidationException("The participantLimit must be more or equals 0");
             }
             event.setParticipantLimit(updateEvent.getParticipantLimit());
@@ -142,7 +142,7 @@ public class Mapper {
             event.setRequestModeration(updateEvent.getRequestModeration());
         }
         if (updateEvent.getTitle() != null) {
-            if(updateEvent.getTitle().length() < 3 || updateEvent.getTitle().length() > 120) {
+            if (updateEvent.getTitle().length() < 3 || updateEvent.getTitle().length() > 120) {
                 throw new UpdateValidationException("The title must be more than 3 and less than 120 characters");
             }
             event.setTitle(updateEvent.getTitle());
@@ -190,12 +190,12 @@ public class Mapper {
     }
 
     public static void updateCompilation(Compilation compilation, UpdateCompilationRequest updateCompilation) {
-        if(updateCompilation.getPinned() != null) {
+        if (updateCompilation.getPinned() != null) {
             compilation.setPinned(updateCompilation.getPinned());
         }
 
-        if(updateCompilation.getTitle() != null) {
-            if(updateCompilation.getTitle().length() < 1 || updateCompilation.getTitle().length() > 50) {
+        if (updateCompilation.getTitle() != null) {
+            if (updateCompilation.getTitle().length() < 1 || updateCompilation.getTitle().length() > 50) {
                 throw new UpdateValidationException("The title must be more than 1 and less than 50 characters");
             }
             compilation.setTitle(updateCompilation.getTitle());

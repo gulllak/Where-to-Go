@@ -4,7 +4,7 @@ import ru.practicum.mainservice.dto.CompilationDto;
 import ru.practicum.mainservice.dto.NewCompilationDto;
 import ru.practicum.mainservice.dto.UpdateCompilationRequest;
 
-import java.util.Set;
+import java.util.List;
 
 public interface CompilationService {
     CompilationDto save(NewCompilationDto newCompilationDto);
@@ -13,7 +13,7 @@ public interface CompilationService {
 
     CompilationDto update(long compId, UpdateCompilationRequest updateCompilationRequest);
 
-    Set<CompilationDto> getCompilations(Boolean pinned, int from, int size);
+    List<CompilationDto> getCompilations(Boolean pinned, int from, int size);
 
     CompilationDto getCompilation(long compId);
 }

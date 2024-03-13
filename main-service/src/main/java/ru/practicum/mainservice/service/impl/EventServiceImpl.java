@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.mainservice.dto.EventDtoComparator;
 import ru.practicum.mainservice.dto.EventFullDto;
 import ru.practicum.mainservice.dto.EventRequestStatusUpdateRequest;
@@ -47,6 +48,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
 
@@ -68,6 +70,7 @@ public class EventServiceImpl implements EventService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
     public EventFullDto addEvent(NewEventDto eventDto, long userId) {
         Category category = categoryRepository.findById(eventDto.getCategory())
@@ -98,7 +101,7 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Event with id=%d was not found", eventId)));
 
-        if(!event.isPublished()) {
+        if (!event.isPublished()) {
             throw new EntityNotFoundException("You cannot view an unpublished event.");
         }
 
@@ -124,6 +127,7 @@ public class EventServiceImpl implements EventService {
         return eventFullDto;
     }
 
+    @Transactional
     @Override
     public EventFullDto updateEventByUser(long userId, long eventId, UpdateEventUserRequest updateEvent) {
         Event event = eventRepository.findById(eventId)
@@ -133,20 +137,20 @@ public class EventServiceImpl implements EventService {
             throw new AccessDeniedException(String.format("User with id=%d does not have access to event id=%d", userId, eventId));
         }
 
-        if(event.isPublished()) {
+        if (event.isPublished()) {
             throw new EventChangeDeniedException("Only pending or canceled events can be changed");
         }
 
-        if(updateEvent.getEventDate() != null) {
+        if (updateEvent.getEventDate() != null) {
             LocalDateTime twoHoursLimit = LocalDateTime.now().plusHours(2);
-            if(updateEvent.getEventDate().isBefore(twoHoursLimit)) {
+            if (updateEvent.getEventDate().isBefore(twoHoursLimit)) {
                 throw new DataValidationException("The minimum time should be 2 hours from the current one.");
             }
             event.setEventDate(updateEvent.getEventDate());
         }
 
         Category category = event.getCategory();
-        if(updateEvent.getCategory() != null) {
+        if (updateEvent.getCategory() != null) {
             category = categoryRepository.findById(updateEvent.getCategory())
                     .orElseThrow(() -> new EntityNotFoundException(String.format("Category with id=%d was not found", updateEvent.getCategory())));
         }
@@ -155,7 +159,7 @@ public class EventServiceImpl implements EventService {
 
         Mapper.updateEvent(event, updateEvent);
 
-        if(updateEvent.isStatesNeedUpdate()) {
+        if (updateEvent.isStatesNeedUpdate()) {
             switch (updateEvent.getStateAction()) {
                 case CANCEL_REVIEW:
                     return cancelEvent(event);
@@ -168,16 +172,17 @@ public class EventServiceImpl implements EventService {
         return Mapper.toEventFullDto(eventRepository.save(event));
     }
 
+    @Transactional
     @Override
     public EventFullDto updateEventByAdmin(long eventId, UpdateEventAdminRequest updateEvent) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Event with id=%d was not found", eventId)));
 
-        if(event.isPublished()) {
+        if (event.isPublished()) {
             throw new EventChangeDeniedException("Only pending events can be changed");
         }
 
-        if(updateEvent.getEventDate() != null) {
+        if (updateEvent.getEventDate() != null) {
             LocalDateTime now = LocalDateTime.now();
             LocalDateTime newStartTime = updateEvent.getEventDate();
             if (ChronoUnit.HOURS.between(now, newStartTime) < 1) {
@@ -186,7 +191,7 @@ public class EventServiceImpl implements EventService {
         }
 
         Category category = event.getCategory();
-        if(updateEvent.getCategory() != null) {
+        if (updateEvent.getCategory() != null) {
             category = categoryRepository.findById(updateEvent.getCategory())
                     .orElseThrow(() -> new EntityNotFoundException(String.format("Category with id=%d was not found", updateEvent.getCategory())));
         }
@@ -195,7 +200,7 @@ public class EventServiceImpl implements EventService {
 
         Mapper.updateEvent(event, updateEvent);
 
-        if(updateEvent.isStatesNeedUpdate()) {
+        if (updateEvent.isStatesNeedUpdate()) {
             switch (updateEvent.getStateAction()) {
                 case PUBLISH_EVENT:
                     return publishEvent(event);
@@ -215,21 +220,21 @@ public class EventServiceImpl implements EventService {
 
         predicates.add(qEvent.state.eq(EventState.PUBLISHED));
 
-        if(request.getCategories() != null) {
+        if (request.getCategories() != null) {
             predicates.add(qEvent.category.id.in(request.getCategories()));
         }
 
-        if(request.getText() != null) {
+        if (request.getText() != null) {
             predicates
                     .add(qEvent.annotation.containsIgnoreCase(request.getText())
                     .or(qEvent.description.containsIgnoreCase(request.getText())));
         }
 
-        if(request.getPaid() != null) {
+        if (request.getPaid() != null) {
             predicates.add(qEvent.paid.eq(request.getPaid()));
         }
 
-        if(request.getRangeStart() != null && request.getRangeEnd() != null) {
+        if (request.getRangeStart() != null && request.getRangeEnd() != null) {
             validateTime(request.getRangeStart(), request.getRangeEnd());
             predicates.add(qEvent.eventDate.between(request.getRangeStart(), request.getRangeEnd()));
         } else {
@@ -249,7 +254,7 @@ public class EventServiceImpl implements EventService {
 
         return events.stream()
                 .filter(event -> {
-                    if(request.getOnlyAvailable() && event.getParticipantLimit() > 0) {
+                    if (request.getOnlyAvailable() && event.getParticipantLimit() > 0) {
                         return event.isAvailable();
                     }
                     return true;
@@ -257,6 +262,119 @@ public class EventServiceImpl implements EventService {
                 .map(mapper)
                 .sorted(EventDtoComparator.of(request.getSort()))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<EventFullDto> findByAdmin(GetEventsRequest request) {
+        QEvent qEvent = QEvent.event;
+        List<BooleanExpression> predicates = new ArrayList<>();
+
+        if (request.getUsers() != null) {
+            predicates.add(qEvent.initiator.id.in(request.getUsers()));
+        }
+
+        if (request.getStates() != null) {
+            predicates.add(qEvent.state.in(request.getStates()));
+        }
+
+        if (request.getCategories() != null) {
+            predicates.add(qEvent.category.id.in(request.getCategories()));
+        }
+
+        if (request.getRangeStart() != null && request.getRangeEnd() != null) {
+            predicates.add(qEvent.eventDate.between(request.getRangeStart(), request.getRangeEnd()));
+        }
+
+        if (request.getRangeStart() != null) {
+            predicates.add(qEvent.eventDate.after(request.getRangeStart()));
+        }
+
+        if (request.getRangeEnd() != null) {
+            predicates.add(qEvent.eventDate.before(request.getRangeEnd()));
+        }
+
+        Predicate predicate = predicates.stream()
+                .reduce(BooleanExpression::and)
+                .orElse(null);
+
+        List<Event> events;
+
+        if (predicate != null) {
+            events = eventRepository.findAll(predicate, getPageable(request.getFrom(), request.getSize())).getContent();
+        } else {
+            events = eventRepository.findAll(getPageable(request.getFrom(), request.getSize())).getContent();
+        }
+
+        return events.stream()
+                .map(Mapper::toEventFullDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ParticipationRequestDto> getEventParticipants(long userId, long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new EntityNotFoundException(String.format("Event with id=%d was not found", eventId)));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException(String.format("User with id=%d was not found", userId)));
+
+        //проверка что владелец события == userId
+        if (!event.getInitiator().equals(user)) {
+            throw new AccessDeniedException(String.format("User with id=%d is not authorized to view participants of event with id=%d", userId, eventId));
+        }
+
+        return requestRepository.findAllByEvent(event).stream()
+                .map(Mapper::toParticipationRequestDto)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    @Override
+    public EventRequestStatusUpdateResult changeRequestStatus(long userId, long eventId, EventRequestStatusUpdateRequest eventRequestStatusUpdate) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new EntityNotFoundException(String.format("Event with id=%d was not found", eventId)));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException(String.format("User with id=%d was not found", userId)));
+
+        //проверка что владелец события == userId
+        if (!event.getInitiator().equals(user)) {
+            throw new AccessDeniedException(String.format("User with id=%d is not authorized to view participants of event with id=%d", userId, eventId));
+        }
+        //проверка что есть места
+        if (!event.isAvailable()) {
+            throw new IllegalStateException("The participant limit has been reached");
+        }
+
+        List<ParticipationRequest> participationRequests = requestRepository.findAllByIdIn(eventRequestStatusUpdate.getRequestIds());
+        List<ParticipationRequest> updatedParticipationRequests;
+
+        //if если пришел CONFIRMED и else если пришел REJECTED
+        if (eventRequestStatusUpdate.getStatus() == RequestStatus.CONFIRMED) {
+            updatedParticipationRequests = participationRequests.stream()
+                    .filter(req -> req.getEvent().equals(event))
+                    .peek(req -> {
+                        if (event.isAvailable() && req.isPending()) {
+                            req.setStatus(RequestStatus.CONFIRMED);
+                            event.setConfirmedParticipants(event.getConfirmedParticipants() + 1);
+                        } else if (req.isPending()) {
+                            req.setStatus(RequestStatus.REJECTED);
+                        }
+                    }).collect(Collectors.toList());
+        } else {
+            updatedParticipationRequests = participationRequests.stream()
+                    .filter(req -> req.getEvent().equals(event))
+                    .filter(req -> {
+                        if (req.isConfirmed() || req.isCanceled()) {
+                            throw new EventChangeDeniedException("Only pending events can be changed");
+                        }
+                        return true;
+                    })
+                    .peek(req -> req.setStatus(RequestStatus.REJECTED))
+                    .collect(Collectors.toList());
+        }
+        eventRepository.save(event);
+        return Mapper.toEventRequestStatusUpdateResult(requestRepository.saveAll(updatedParticipationRequests));
     }
 
     private Function<Event, EventShortDto> mapEventToDto(Map<Long, Long> eventIdAndCountViews) {
@@ -288,118 +406,6 @@ public class EventServiceImpl implements EventService {
                         ViewStats::getHits));
     }
 
-    @Override
-    public List<EventFullDto> findByAdmin(GetEventsRequest request) {
-        QEvent qEvent = QEvent.event;
-        List<BooleanExpression> predicates = new ArrayList<>();
-
-        if(request.getUsers() != null) {
-            predicates.add(qEvent.initiator.id.in(request.getUsers()));
-        }
-
-        if(request.getStates() != null) {
-            predicates.add(qEvent.state.in(request.getStates()));
-        }
-
-        if(request.getCategories() != null) {
-            predicates.add(qEvent.category.id.in(request.getCategories()));
-        }
-
-        if(request.getRangeStart() != null && request.getRangeEnd() != null) {
-            predicates.add(qEvent.eventDate.between(request.getRangeStart(), request.getRangeEnd()));
-        }
-
-        if(request.getRangeStart() != null) {
-            predicates.add(qEvent.eventDate.after(request.getRangeStart()));
-        }
-
-        if(request.getRangeEnd() != null) {
-            predicates.add(qEvent.eventDate.before(request.getRangeEnd()));
-        }
-
-        Predicate predicate = predicates.stream()
-                .reduce(BooleanExpression::and)
-                .orElse(null);
-
-        List<Event> events;
-
-        if(predicate != null) {
-            events = eventRepository.findAll(predicate, getPageable(request.getFrom(), request.getSize())).getContent();
-        } else {
-            events = eventRepository.findAll(getPageable(request.getFrom(), request.getSize())).getContent();
-        }
-
-        return events.stream()
-                .map(Mapper::toEventFullDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<ParticipationRequestDto> getEventParticipants(long userId, long eventId) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new EntityNotFoundException(String.format("Event with id=%d was not found", eventId)));
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException(String.format("User with id=%d was not found", userId)));
-
-        //проверка что владелец события == userId
-        if(!event.getInitiator().equals(user)) {
-            throw new AccessDeniedException(String.format("User with id=%d is not authorized to view participants of event with id=%d", userId, eventId));
-        }
-
-        return requestRepository.findAllByEvent(event).stream()
-                .map(Mapper::toParticipationRequestDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public EventRequestStatusUpdateResult changeRequestStatus(long userId, long eventId, EventRequestStatusUpdateRequest eventRequestStatusUpdate) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new EntityNotFoundException(String.format("Event with id=%d was not found", eventId)));
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException(String.format("User with id=%d was not found", userId)));
-
-        //проверка что владелец события == userId
-        if(!event.getInitiator().equals(user)) {
-            throw new AccessDeniedException(String.format("User with id=%d is not authorized to view participants of event with id=%d", userId, eventId));
-        }
-        //проверка что есть места
-        if (!event.isAvailable()) {
-            throw new IllegalStateException("The participant limit has been reached");
-        }
-
-        List<ParticipationRequest> participationRequests = requestRepository.findAllByIdIn(eventRequestStatusUpdate.getRequestIds());
-        List<ParticipationRequest> updatedParticipationRequests;
-
-        //if если пришел CONFIRMED и else если пришел REJECTED
-        if(eventRequestStatusUpdate.getStatus() == RequestStatus.CONFIRMED) {
-            updatedParticipationRequests = participationRequests.stream()
-                    .filter(req -> req.getEvent().equals(event))
-                    .peek(req -> {
-                        if (event.isAvailable() && req.isPending()) {
-                            req.setStatus(RequestStatus.CONFIRMED);
-                            event.setConfirmedParticipants(event.getConfirmedParticipants() + 1);
-                        } else if (req.isPending()) {
-                            req.setStatus(RequestStatus.REJECTED);
-                        }
-                    }).collect(Collectors.toList());
-        } else {
-            updatedParticipationRequests = participationRequests.stream()
-                    .filter(req -> req.getEvent().equals(event))
-                    .filter(req -> {
-                        if(req.isConfirmed() || req.isCanceled()) {
-                            throw new EventChangeDeniedException("Only pending events can be changed");
-                        }
-                        return true;
-                    })
-                    .peek(req -> req.setStatus(RequestStatus.REJECTED))
-                    .collect(Collectors.toList());
-        }
-        eventRepository.save(event);
-        return Mapper.toEventRequestStatusUpdateResult(requestRepository.saveAll(updatedParticipationRequests));
-    }
-
     private EventFullDto sendEvent(Event event) {
         event.setState(EventState.PENDING);
         return Mapper.toEventFullDto(eventRepository.save(event));
@@ -416,7 +422,7 @@ public class EventServiceImpl implements EventService {
     }
 
     private EventFullDto publishEvent(Event event) {
-        if(event.isCanceled()) {
+        if (event.isCanceled()) {
             throw new EventChangeDeniedException("Only pending events can be changed");
         }
         event.setState(EventState.PUBLISHED);
