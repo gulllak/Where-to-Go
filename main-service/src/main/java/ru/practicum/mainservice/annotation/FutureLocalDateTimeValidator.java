@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 public class FutureLocalDateTimeValidator implements ConstraintValidator<StartTimeChecker, LocalDateTime> {
     private long hours;
+
     @Override
     public void initialize(StartTimeChecker constraintAnnotation) {
         this.hours = constraintAnnotation.hours();
