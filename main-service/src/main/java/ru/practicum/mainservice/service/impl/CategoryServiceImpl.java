@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.mainservice.dto.CategoryDto;
 import ru.practicum.mainservice.dto.NewCategoryDto;
 import ru.practicum.mainservice.exception.EntityNotFoundException;
+import ru.practicum.mainservice.mapper.CategoryMapper;
 import ru.practicum.mainservice.model.Category;
 import ru.practicum.mainservice.repository.CategoryRepository;
 import ru.practicum.mainservice.service.api.CategoryService;
@@ -25,8 +26,8 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     @Override
     public CategoryDto save(NewCategoryDto newCategoryDto) {
-        Category category = categoryRepository.save(Mapper.toCategory(newCategoryDto));
-        return Mapper.toCategoryDto(category);
+        Category category = categoryRepository.save(CategoryMapper.toCategory(newCategoryDto));
+        return CategoryMapper.toCategoryDto(category);
     }
 
     @Transactional
@@ -44,9 +45,9 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(categoryDto.getId())
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Category with id=%d was not found", categoryDto.getId())));
 
-        Mapper.updateCategory(category, categoryDto);
+        CategoryMapper.updateCategory(category, categoryDto);
 
-        return Mapper.toCategoryDto(categoryRepository.save(category));
+        return CategoryMapper.toCategoryDto(categoryRepository.save(category));
     }
 
     @Override
@@ -54,7 +55,7 @@ public class CategoryServiceImpl implements CategoryService {
         Page<Category> categories = categoryRepository.findAll(getPageable(from, size));
 
         return categories.stream()
-                .map(Mapper::toCategoryDto)
+                .map(CategoryMapper::toCategoryDto)
                 .collect(Collectors.toList());
     }
 
@@ -63,7 +64,7 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Category with id=%d was not found", id)));
 
-        return Mapper.toCategoryDto(category);
+        return CategoryMapper.toCategoryDto(category);
     }
 
     private Pageable getPageable(int from, int size) {

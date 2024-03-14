@@ -10,6 +10,7 @@ import ru.practicum.mainservice.dto.CompilationDto;
 import ru.practicum.mainservice.dto.NewCompilationDto;
 import ru.practicum.mainservice.dto.UpdateCompilationRequest;
 import ru.practicum.mainservice.exception.EntityNotFoundException;
+import ru.practicum.mainservice.mapper.CompilationMapper;
 import ru.practicum.mainservice.model.Compilation;
 import ru.practicum.mainservice.model.Event;
 import ru.practicum.mainservice.model.QCompilation;
@@ -44,7 +45,7 @@ public class CompilationServiceImpl implements CompilationService {
                 .events(events)
                 .build();
 
-        return Mapper.toCompilationDto(compilationRepository.save(compilation));
+        return CompilationMapper.toCompilationDto(compilationRepository.save(compilation));
     }
 
     @Transactional
@@ -67,9 +68,9 @@ public class CompilationServiceImpl implements CompilationService {
             compilation.setEvents(events);
         }
 
-        Mapper.updateCompilation(compilation, updateCompilation);
+        CompilationMapper.updateCompilation(compilation, updateCompilation);
 
-        return Mapper.toCompilationDto(compilationRepository.save(compilation));
+        return CompilationMapper.toCompilationDto(compilationRepository.save(compilation));
     }
 
     @Override
@@ -87,7 +88,7 @@ public class CompilationServiceImpl implements CompilationService {
         }
 
         return compilations.stream()
-                .map(Mapper::toCompilationDto)
+                .map(CompilationMapper::toCompilationDto)
                 .collect(Collectors.toList());
     }
 
@@ -96,7 +97,7 @@ public class CompilationServiceImpl implements CompilationService {
         Compilation compilation = compilationRepository.findById(compId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Compilation with id=%d was not found", compId)));
 
-        return Mapper.toCompilationDto(compilation);
+        return CompilationMapper.toCompilationDto(compilation);
     }
 
     private Pageable getPageable(int from, int size) {

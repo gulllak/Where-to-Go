@@ -15,10 +15,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = FutureLocalDateTimeValidator.class)
 @Target({ METHOD, FIELD, ANNOTATION_TYPE })
 @Retention(RUNTIME)
-public @interface AfterTwoHours {
+public @interface StartTimeChecker {
     String message() default "The date and time must be at least 2 hours in the future";
 
     Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};
+
+    long hours() default 2;
 }

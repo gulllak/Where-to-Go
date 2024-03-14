@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.mainservice.dto.NewUserRequest;
 import ru.practicum.mainservice.dto.UserDto;
 import ru.practicum.mainservice.exception.EntityNotFoundException;
+import ru.practicum.mainservice.mapper.UserMapper;
 import ru.practicum.mainservice.model.User;
 import ru.practicum.mainservice.repository.UserRepository;
 import ru.practicum.mainservice.service.api.UserService;
@@ -24,9 +25,9 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public UserDto save(NewUserRequest newUser) {
-        User user = userRepository.save(Mapper.toUser(newUser));
+        User user = userRepository.save(UserMapper.toUser(newUser));
 
-        return Mapper.toUserDto(user);
+        return UserMapper.toUserDto(user);
     }
 
     @Transactional
@@ -48,7 +49,7 @@ public class UserServiceImpl implements UserService {
         }
 
         return users.stream()
-                .map(Mapper::toUserDto)
+                .map(UserMapper::toUserDto)
                 .collect(Collectors.toList());
     }
 

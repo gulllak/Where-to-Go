@@ -2,7 +2,7 @@ package ru.practicum.mainservice.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
-import ru.practicum.mainservice.annotation.AfterTwoHours;
+import ru.practicum.mainservice.annotation.StartTimeChecker;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -21,7 +21,7 @@ public class NewEventDto {
     @Size(min = 20, max = 7000)
     private String description;
     @NotNull
-    @AfterTwoHours
+    @StartTimeChecker(hours = 2)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime eventDate;
     @NotNull

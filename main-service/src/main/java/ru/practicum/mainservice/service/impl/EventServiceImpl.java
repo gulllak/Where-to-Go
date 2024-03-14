@@ -21,6 +21,8 @@ import ru.practicum.mainservice.exception.AccessDeniedException;
 import ru.practicum.mainservice.exception.DataValidationException;
 import ru.practicum.mainservice.exception.EntityNotFoundException;
 import ru.practicum.mainservice.exception.EventChangeDeniedException;
+import ru.practicum.mainservice.mapper.EventMapper;
+import ru.practicum.mainservice.mapper.ParticipationRequestMapper;
 import ru.practicum.mainservice.model.Category;
 import ru.practicum.mainservice.model.Event;
 import ru.practicum.mainservice.model.EventState;
@@ -66,7 +68,7 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new EntityNotFoundException(String.format("User with id=%d was not found", userId)));
 
         return eventRepository.findAllByInitiator(user, getPageable(from, size)).stream()
-                .map(Mapper::toEventShortDto)
+                .map(EventMapper::toEventShortDto)
                 .collect(Collectors.toList());
     }
 
@@ -78,11 +80,11 @@ public class EventServiceImpl implements EventService {
         User initiator = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("User with id=%d was not found", userId)));
 
-        Event event = Mapper.toEvent(eventDto);
+        Event event = EventMapper.toEvent(eventDto);
         event.setCategory(category);
         event.setInitiator(initiator);
 
-        return Mapper.toEventFullDto(eventRepository.save(event));
+        return EventMapper.toEventFullDto(eventRepository.save(event));
     }
 
     @Override
@@ -93,7 +95,7 @@ public class EventServiceImpl implements EventService {
             throw new AccessDeniedException(String.format("User with id=%d does not have access to event id=%d", userId, eventId));
         }
 
-        return Mapper.toEventFullDto(event);
+        return EventMapper.toEventFullDto(event);
     }
 
     @Override
@@ -118,7 +120,7 @@ public class EventServiceImpl implements EventService {
 
         int confirmedRequests = requestRepository.countParticipationRequestByEventIdAndStatus(eventId, RequestStatus.CONFIRMED);
 
-        EventFullDto eventFullDto = Mapper.toEventFullDto(event);
+        EventFullDto eventFullDto = EventMapper.toEventFullDto(event);
         eventFullDto.setConfirmedRequests(confirmedRequests);
         eventFullDto.setViews(view);
 
@@ -155,7 +157,7 @@ public class EventServiceImpl implements EventService {
 
         event.setCategory(category);
 
-        Mapper.updateEvent(event, updateEvent);
+        EventMapper.updateEvent(event, updateEvent);
 
         if (updateEvent.isStatesNeedUpdate()) {
             switch (updateEvent.getStateAction()) {
@@ -167,7 +169,7 @@ public class EventServiceImpl implements EventService {
             }
         }
 
-        return Mapper.toEventFullDto(eventRepository.save(event));
+        return EventMapper.toEventFullDto(eventRepository.save(event));
     }
 
     @Transactional
@@ -197,7 +199,7 @@ public class EventServiceImpl implements EventService {
 
         event.setCategory(category);
 
-        Mapper.updateEvent(event, updateEvent);
+        EventMapper.updateEvent(event, updateEvent);
 
         if (updateEvent.isStatesNeedUpdate()) {
             switch (updateEvent.getStateAction()) {
@@ -209,7 +211,7 @@ public class EventServiceImpl implements EventService {
             }
         }
 
-        return Mapper.toEventFullDto(eventRepository.save(event));
+        return EventMapper.toEventFullDto(eventRepository.save(event));
     }
 
     @Override
@@ -305,7 +307,7 @@ public class EventServiceImpl implements EventService {
         }
 
         return events.stream()
-                .map(Mapper::toEventFullDto)
+                .map(EventMapper::toEventFullDto)
                 .collect(Collectors.toList());
     }
 
@@ -323,7 +325,7 @@ public class EventServiceImpl implements EventService {
         }
 
         return requestRepository.findAllByEvent(event).stream()
-                .map(Mapper::toParticipationRequestDto)
+                .map(ParticipationRequestMapper::toParticipationRequestDto)
                 .collect(Collectors.toList());
     }
 
@@ -373,12 +375,12 @@ public class EventServiceImpl implements EventService {
                     .collect(Collectors.toList());
         }
         eventRepository.save(event);
-        return Mapper.toEventRequestStatusUpdateResult(requestRepository.saveAll(updatedParticipationRequests));
+        return ParticipationRequestMapper.toEventRequestStatusUpdateResult(requestRepository.saveAll(updatedParticipationRequests));
     }
 
     private Function<Event, EventShortDto> mapEventToDto(Map<Long, Long> eventIdAndCountViews) {
         return event -> {
-            EventShortDto eventShortDto = Mapper.toEventShortDto(event);
+            EventShortDto eventShortDto = EventMapper.toEventShortDto(event);
 
             Long views = eventIdAndCountViews.getOrDefault(event.getId(), 0L);
             eventShortDto.setViews(views);
@@ -407,17 +409,17 @@ public class EventServiceImpl implements EventService {
 
     private EventFullDto sendEvent(Event event) {
         event.setState(EventState.PENDING);
-        return Mapper.toEventFullDto(eventRepository.save(event));
+        return EventMapper.toEventFullDto(eventRepository.save(event));
     }
 
     private EventFullDto cancelEvent(Event event) {
         event.setState(EventState.CANCELED);
-        return Mapper.toEventFullDto(eventRepository.save(event));
+        return EventMapper.toEventFullDto(eventRepository.save(event));
     }
 
     private EventFullDto rejectEvent(Event event) {
         event.setState(EventState.CANCELED);
-        return Mapper.toEventFullDto(eventRepository.save(event));
+        return EventMapper.toEventFullDto(eventRepository.save(event));
     }
 
     private EventFullDto publishEvent(Event event) {
@@ -426,7 +428,7 @@ public class EventServiceImpl implements EventService {
         }
         event.setState(EventState.PUBLISHED);
         event.setPublishedOn(LocalDateTime.now());
-        return Mapper.toEventFullDto(eventRepository.save(event));
+        return EventMapper.toEventFullDto(eventRepository.save(event));
     }
 
     private void validateTime(LocalDateTime start, LocalDateTime end) {

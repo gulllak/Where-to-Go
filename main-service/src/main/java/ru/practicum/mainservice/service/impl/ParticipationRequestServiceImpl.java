@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.mainservice.dto.ParticipationRequestDto;
 import ru.practicum.mainservice.exception.AccessDeniedException;
 import ru.practicum.mainservice.exception.EntityNotFoundException;
+import ru.practicum.mainservice.mapper.ParticipationRequestMapper;
 import ru.practicum.mainservice.model.Event;
 import ru.practicum.mainservice.model.ParticipationRequest;
 import ru.practicum.mainservice.model.RequestStatus;
@@ -34,7 +35,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
                 .orElseThrow(() -> new EntityNotFoundException(String.format("User with id=%d was not found", userId)));
 
         return requestRepository.findAllByRequester(requester).stream()
-                .map(Mapper::toParticipationRequestDto)
+                .map(ParticipationRequestMapper::toParticipationRequestDto)
                 .collect(Collectors.toList());
     }
 
@@ -69,7 +70,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
             event.setConfirmedParticipants(event.getConfirmedParticipants() + 1);
             eventRepository.save(event);
         }
-        return Mapper.toParticipationRequestDto(requestRepository.save(participationRequest));
+        return ParticipationRequestMapper.toParticipationRequestDto(requestRepository.save(participationRequest));
     }
 
     @Transactional
@@ -91,6 +92,6 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
 
         eventRepository.save(event);
 
-        return Mapper.toParticipationRequestDto(requestRepository.save(participationRequest));
+        return ParticipationRequestMapper.toParticipationRequestDto(requestRepository.save(participationRequest));
     }
 }
