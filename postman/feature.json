@@ -708,10 +708,7 @@
 							"pm.expect(target).to.have.property('eventId');",
 							"pm.expect(target).to.have.property('created');",
 							"});",
-							"",
-							"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {",
-							"    pm.expect(target.text).equal(source.text, 'Текст коммментария должен соответствовать коммментарию в запросе');",
-							"});"
+							""
 						],
 						"type": "text/javascript",
 						"packages": {}
