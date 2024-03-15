@@ -7,8 +7,6 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -39,11 +37,9 @@ public class Comment {
     private Event event;
 
     @Builder.Default
-    @Enumerated(EnumType.STRING)
-    @Column(name = "state")
-    private CommentStatus state = CommentStatus.PENDING;
-
-    @Builder.Default
     @Column(name = "created_on")
     private LocalDateTime created = LocalDateTime.now();
+
+    @Column(name = "updated_on")
+    private LocalDateTime updated;
 }

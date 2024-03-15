@@ -29,7 +29,6 @@ services:
     container_name: ewm-main-server
     ports:
       - "8080:8080"
-      - "8081:8081"
     depends_on:
       - ewm-main-db
       - stats-server
