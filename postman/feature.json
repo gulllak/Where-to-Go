@@ -681,7 +681,7 @@
 							"            clearInterval(interval);",
 							"        }",
 							"    },  ",
-							"    100 ",
+							"    150 ",
 							");"
 						],
 						"type": "text/javascript",
@@ -710,7 +710,7 @@
 							"});",
 							"",
 							"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {",
-							"    pm.expect(target.text).equal(source.text, 'Название события должно соответствовать названию события в запросе');",
+							"    pm.expect(target.text).equal(source.text, 'Текст коммментария должен соответствовать коммментарию в запросе');",
 							"});"
 						],
 						"type": "text/javascript",
