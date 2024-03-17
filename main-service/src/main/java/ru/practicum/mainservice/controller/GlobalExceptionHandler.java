@@ -7,6 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.mainservice.dto.ApiError;
+import ru.practicum.mainservice.exception.AccessDeniedException;
 import ru.practicum.mainservice.exception.DataValidationException;
 import ru.practicum.mainservice.exception.EntityNotFoundException;
 import ru.practicum.mainservice.exception.EventChangeDeniedException;
@@ -89,6 +90,16 @@ public class GlobalExceptionHandler {
         ApiError apiError = new ApiError(
                 HttpStatus.BAD_REQUEST,
                 "Incorrectly made request.",
+                ex.getLocalizedMessage()
+        );
+        return new ResponseEntity<>(apiError, apiError.getStatus());
+    }
+
+    @ExceptionHandler({AccessDeniedException.class})
+    public ResponseEntity<ApiError> handleIllegalState(AccessDeniedException ex) {
+        ApiError apiError = new ApiError(
+                HttpStatus.FORBIDDEN,
+                "No access rights",
                 ex.getLocalizedMessage()
         );
         return new ResponseEntity<>(apiError, apiError.getStatus());
