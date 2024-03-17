@@ -36,7 +36,7 @@ public class CommentAdminController {
 
     @GetMapping()
     @ResponseStatus(HttpStatus.OK)
-    public List<CommentDto> getComment(@RequestParam("users") List<Long> users,
+    public List<CommentDto> getComments(@RequestParam("users") List<Long> users,
                                        @RequestParam("events") List<Long> events,
                                        @RequestParam("text") String text,
                                        @RequestParam(defaultValue = "0") int from,
