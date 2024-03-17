@@ -1,5 +1,4 @@
 # Explore-with-me
-[Ссылка на Pull Request](https://github.com/gulllak/java-explore-with-me/pull/3)
 
 _Афиша - приложение позволяет пользователям делиться информацией об интересных событиях и находить компанию для участия в них._
 
